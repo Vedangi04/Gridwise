@@ -508,6 +508,200 @@ function App() {
                   </div>
                 </div>
               )}
+
+              {/* Model Performance View */}
+              {activeView === 'performance' && (
+                <div className="space-y-6" data-testid="performance-view">
+                  {/* Overall Metrics Summary */}
+                  <div className="grid grid-cols-2 gap-6">
+                    {/* Wind Model Metrics */}
+                    <div className="card p-5 border-l-4 border-l-wind">
+                      <div className="flex items-center gap-3 mb-4">
+                        <Wind className="w-5 h-5 text-wind" />
+                        <h3 className="font-heading font-semibold text-white">Wind Model Performance</h3>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <MetricCard 
+                          label="Avg Accuracy" 
+                          value={performanceData?.wind_overall?.avg_accuracy || '--'} 
+                          unit="%" 
+                          color="wind"
+                          icon={Target}
+                        />
+                        <MetricCard 
+                          label="RMSE" 
+                          value={performanceData?.wind_overall?.avg_rmse || '--'} 
+                          unit="kW" 
+                          subtext="Root Mean Square Error"
+                          color="wind"
+                          icon={Activity}
+                        />
+                        <MetricCard 
+                          label="MAE" 
+                          value={performanceData?.wind_overall?.avg_mae || '--'} 
+                          unit="kW" 
+                          subtext="Mean Absolute Error"
+                          color="wind"
+                          icon={BarChart2}
+                        />
+                        <MetricCard 
+                          label="MAPE" 
+                          value={performanceData?.wind_overall?.avg_mape || '--'} 
+                          unit="%" 
+                          subtext="Mean Abs % Error"
+                          color="wind"
+                          icon={TrendingUp}
+                        />
+                      </div>
+                      <div className="mt-4 pt-4 border-t border-white/10 flex justify-between text-xs">
+                        <span className="text-zinc-500">Best: <span className="text-success">{performanceData?.wind_overall?.best_day || '--'}</span></span>
+                        <span className="text-zinc-500">Worst: <span className="text-error">{performanceData?.wind_overall?.worst_day || '--'}</span></span>
+                      </div>
+                    </div>
+
+                    {/* Solar Model Metrics */}
+                    <div className="card p-5 border-l-4 border-l-solar">
+                      <div className="flex items-center gap-3 mb-4">
+                        <Sun className="w-5 h-5 text-solar" />
+                        <h3 className="font-heading font-semibold text-white">Solar Model Performance</h3>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <MetricCard 
+                          label="Avg Accuracy" 
+                          value={performanceData?.solar_overall?.avg_accuracy || '--'} 
+                          unit="%" 
+                          color="solar"
+                          icon={Target}
+                        />
+                        <MetricCard 
+                          label="RMSE" 
+                          value={performanceData?.solar_overall?.avg_rmse || '--'} 
+                          unit="kW" 
+                          subtext="Root Mean Square Error"
+                          color="solar"
+                          icon={Activity}
+                        />
+                        <MetricCard 
+                          label="MAE" 
+                          value={performanceData?.solar_overall?.avg_mae || '--'} 
+                          unit="kW" 
+                          subtext="Mean Absolute Error"
+                          color="solar"
+                          icon={BarChart2}
+                        />
+                        <MetricCard 
+                          label="MAPE" 
+                          value={performanceData?.solar_overall?.avg_mape || '--'} 
+                          unit="%" 
+                          subtext="Mean Abs % Error"
+                          color="solar"
+                          icon={TrendingUp}
+                        />
+                      </div>
+                      <div className="mt-4 pt-4 border-t border-white/10 flex justify-between text-xs">
+                        <span className="text-zinc-500">Best: <span className="text-success">{performanceData?.solar_overall?.best_day || '--'}</span></span>
+                        <span className="text-zinc-500">Worst: <span className="text-error">{performanceData?.solar_overall?.worst_day || '--'}</span></span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Accuracy Trend Chart */}
+                  <div className="card p-5" data-testid="accuracy-trend-chart">
+                    <h3 className="font-heading font-semibold text-white mb-4">Model Accuracy Trend (30 Days)</h3>
+                    <ResponsiveContainer width="100%" height={300}>
+                      <LineChart data={performanceData?.wind_trend || []}>
+                        <XAxis dataKey="date" stroke="#52525B" fontSize={10} fontFamily="JetBrains Mono" angle={-45} textAnchor="end" height={60} />
+                        <YAxis stroke="#52525B" fontSize={11} fontFamily="JetBrains Mono" domain={[0, 100]} />
+                        <Tooltip content={<CustomTooltip />} />
+                        <ReferenceLine y={80} stroke="#10B981" strokeDasharray="3 3" label={{ value: 'Target 80%', fill: '#10B981', fontSize: 10 }} />
+                        <Line type="monotone" dataKey="accuracy" name="Wind Accuracy" stroke="#0EA5E9" strokeWidth={2} dot={{ r: 3 }} />
+                      </LineChart>
+                    </ResponsiveContainer>
+                    <div className="mt-4">
+                      <ResponsiveContainer width="100%" height={300}>
+                        <LineChart data={performanceData?.solar_trend || []}>
+                          <XAxis dataKey="date" stroke="#52525B" fontSize={10} fontFamily="JetBrains Mono" angle={-45} textAnchor="end" height={60} />
+                          <YAxis stroke="#52525B" fontSize={11} fontFamily="JetBrains Mono" domain={[0, 100]} />
+                          <Tooltip content={<CustomTooltip />} />
+                          <ReferenceLine y={80} stroke="#10B981" strokeDasharray="3 3" label={{ value: 'Target 80%', fill: '#10B981', fontSize: 10 }} />
+                          <Line type="monotone" dataKey="accuracy" name="Solar Accuracy" stroke="#F59E0B" strokeWidth={2} dot={{ r: 3 }} />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </div>
+
+                  {/* Residual Analysis */}
+                  <div className="grid grid-cols-2 gap-6">
+                    <div className="card p-5" data-testid="wind-residuals-chart">
+                      <h3 className="font-heading font-semibold text-white mb-2">Wind Model Residuals</h3>
+                      <p className="text-zinc-500 text-xs mb-4">Prediction errors by hour for {performanceData?.selected_date}</p>
+                      <ResponsiveContainer width="100%" height={250}>
+                        <ComposedChart data={performanceData?.wind_residuals || []}>
+                          <XAxis dataKey="time" stroke="#52525B" fontSize={10} fontFamily="JetBrains Mono" />
+                          <YAxis stroke="#52525B" fontSize={11} fontFamily="JetBrains Mono" />
+                          <Tooltip content={<CustomTooltip />} />
+                          <ReferenceLine y={0} stroke="#52525B" />
+                          <Bar dataKey="residual" name="Residual" fill="#0EA5E9" opacity={0.7} />
+                        </ComposedChart>
+                      </ResponsiveContainer>
+                    </div>
+
+                    <div className="card p-5" data-testid="solar-residuals-chart">
+                      <h3 className="font-heading font-semibold text-white mb-2">Solar Model Residuals</h3>
+                      <p className="text-zinc-500 text-xs mb-4">Prediction errors by hour for {performanceData?.selected_date}</p>
+                      <ResponsiveContainer width="100%" height={250}>
+                        <ComposedChart data={performanceData?.solar_residuals || []}>
+                          <XAxis dataKey="time" stroke="#52525B" fontSize={10} fontFamily="JetBrains Mono" />
+                          <YAxis stroke="#52525B" fontSize={11} fontFamily="JetBrains Mono" />
+                          <Tooltip content={<CustomTooltip />} />
+                          <ReferenceLine y={0} stroke="#52525B" />
+                          <Bar dataKey="residual" name="Residual" fill="#F59E0B" opacity={0.7} />
+                        </ComposedChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </div>
+
+                  {/* Error Distribution Table */}
+                  <div className="card p-5" data-testid="error-distribution">
+                    <h3 className="font-heading font-semibold text-white mb-4">Hourly Error Analysis ({performanceData?.selected_date})</h3>
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-sm">
+                        <thead>
+                          <tr className="border-b border-white/10">
+                            <th className="text-left py-3 px-4 text-zinc-400 font-medium">Hour</th>
+                            <th className="text-right py-3 px-4 text-wind font-medium">Wind Actual</th>
+                            <th className="text-right py-3 px-4 text-wind font-medium">Wind Pred</th>
+                            <th className="text-right py-3 px-4 text-wind font-medium">Wind Error %</th>
+                            <th className="text-right py-3 px-4 text-solar font-medium">Solar Actual</th>
+                            <th className="text-right py-3 px-4 text-solar font-medium">Solar Pred</th>
+                            <th className="text-right py-3 px-4 text-solar font-medium">Solar Error %</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {performanceData?.wind_residuals?.slice(0, 12).map((wind, i) => {
+                            const solar = performanceData?.solar_residuals?.[i] || {};
+                            return (
+                              <tr key={i} className="border-b border-white/5 hover:bg-white/5">
+                                <td className="py-2 px-4 font-mono text-zinc-300">{wind.time}</td>
+                                <td className="py-2 px-4 font-mono text-right">{wind.actual}</td>
+                                <td className="py-2 px-4 font-mono text-right">{wind.predicted}</td>
+                                <td className={`py-2 px-4 font-mono text-right ${wind.error_pct > 30 ? 'text-error' : wind.error_pct > 15 ? 'text-warning' : 'text-success'}`}>
+                                  {wind.error_pct}%
+                                </td>
+                                <td className="py-2 px-4 font-mono text-right">{solar.actual || '--'}</td>
+                                <td className="py-2 px-4 font-mono text-right">{solar.predicted || '--'}</td>
+                                <td className={`py-2 px-4 font-mono text-right ${(solar.error_pct || 0) > 30 ? 'text-error' : (solar.error_pct || 0) > 15 ? 'text-warning' : 'text-success'}`}>
+                                  {solar.error_pct || '--'}%
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              )}
             </>
           )}
         </div>
