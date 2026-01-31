@@ -436,8 +436,14 @@ async def train_model(data: dict):
         train_rmse = np.sqrt(mean_squared_error(y_train, y_pred_train))
         test_rmse = np.sqrt(mean_squared_error(y_test, y_pred_test))
         
-        train_mape = np.mean(np.abs((y_train - y_pred_train) / (y_train + 0.001))) * 100
-        test_mape = np.mean(np.abs((y_test - y_pred_test) / (y_test + 0.001))) * 100
+        # Calculate R-squared as accuracy metric
+        train_ss_res = np.sum((y_train - y_pred_train) ** 2)
+        train_ss_tot = np.sum((y_train - np.mean(y_train)) ** 2)
+        train_r2 = max(0, 1 - (train_ss_res / train_ss_tot)) * 100
+        
+        test_ss_res = np.sum((y_test - y_pred_test) ** 2)
+        test_ss_tot = np.sum((y_test - np.mean(y_test)) ** 2)
+        test_r2 = max(0, 1 - (test_ss_res / test_ss_tot)) * 100
         
         # Store model
         trained_models['solar'] = solar_model
@@ -446,8 +452,8 @@ async def train_model(data: dict):
             'test_mae': round(test_mae, 2),
             'train_rmse': round(train_rmse, 2),
             'test_rmse': round(test_rmse, 2),
-            'train_accuracy': round(max(0, 100 - train_mape), 1),
-            'test_accuracy': round(max(0, 100 - test_mape), 1),
+            'train_accuracy': round(train_r2, 1),
+            'test_accuracy': round(test_r2, 1),
             'samples_train': len(X_train),
             'samples_test': len(X_test)
         }
