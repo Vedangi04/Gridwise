@@ -97,11 +97,22 @@ function App() {
   const [aiInsight, setAiInsight] = useState('');
   const [liveData, setLiveData] = useState(null);
   const [loading, setLoading] = useState(false);
+  
+  // Model Training states
+  const [modelStatus, setModelStatus] = useState({ wind_trained: false, solar_trained: false });
+  const [trainingInProgress, setTrainingInProgress] = useState(false);
+  const [trainedPredictions, setTrainedPredictions] = useState(null);
+  const [selectedAlgorithm, setSelectedAlgorithm] = useState('gradient_boosting');
 
-  // Fetch available dates
+  // Fetch available dates and model status
   useEffect(() => {
     axios.get(`${API_URL}/api/dates`).then(res => {
       setAvailableDates(res.data.dates || []);
+    }).catch(console.error);
+    
+    // Check if models are already trained
+    axios.get(`${API_URL}/api/model-status`).then(res => {
+      setModelStatus(res.data);
     }).catch(console.error);
   }, []);
 
