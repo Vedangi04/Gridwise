@@ -92,24 +92,29 @@ function App() {
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      // Fetch energy data in parallel
-      const requests = [];
-      
-      if (activeView === 'dashboard' || activeView === 'wind') {
-        requests.push(axios.post(`${API_URL}/api/wind-prediction`, { date: selectedDate }).then(res => setWindData(res.data)));
-      }
-      if (activeView === 'dashboard' || activeView === 'solar') {
-        requests.push(axios.post(`${API_URL}/api/solar-prediction`, { date: selectedDate }).then(res => setSolarData(res.data)));
-      }
+      // Fetch energy data based on active view
       if (activeView === 'dashboard') {
-        requests.push(axios.post(`${API_URL}/api/dashboard-summary`, { date: selectedDate }).then(res => setDashboardData(res.data)));
-      }
-      if (activeView === 'machines' || activeView === 'dashboard') {
-        const machineDate = selectedDate.includes('2023') ? selectedDate : '01-01-2023';
-        requests.push(axios.post(`${API_URL}/api/machine-consumption`, { date: machineDate }).then(res => setMachineData(res.data)));
+        const [windRes, solarRes, dashRes, machRes] = await Promise.all([
+          axios.post(`${API_URL}/api/wind-prediction`, { date: selectedDate }),
+          axios.post(`${API_URL}/api/solar-prediction`, { date: selectedDate }),
+          axios.post(`${API_URL}/api/dashboard-summary`, { date: selectedDate }),
+          axios.post(`${API_URL}/api/machine-consumption`, { date: '01-01-2023' })
+        ]);
+        setWindData(windRes.data);
+        setSolarData(solarRes.data);
+        setDashboardData(dashRes.data);
+        setMachineData(machRes.data);
+      } else if (activeView === 'wind') {
+        const res = await axios.post(`${API_URL}/api/wind-prediction`, { date: selectedDate });
+        setWindData(res.data);
+      } else if (activeView === 'solar') {
+        const res = await axios.post(`${API_URL}/api/solar-prediction`, { date: selectedDate });
+        setSolarData(res.data);
+      } else if (activeView === 'machines') {
+        const res = await axios.post(`${API_URL}/api/machine-consumption`, { date: '01-01-2023' });
+        setMachineData(res.data);
       }
       
-      await Promise.all(requests);
       setLoading(false);
       
       // Fetch AI insight asynchronously (non-blocking)
