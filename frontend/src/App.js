@@ -93,6 +93,7 @@ function App() {
   const [windData, setWindData] = useState(null);
   const [solarData, setSolarData] = useState(null);
   const [machineData, setMachineData] = useState(null);
+  const [performanceData, setPerformanceData] = useState(null);
   const [aiInsight, setAiInsight] = useState('');
   const [liveData, setLiveData] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -129,6 +130,9 @@ function App() {
       } else if (activeView === 'machines') {
         const res = await axios.post(`${API_URL}/api/machine-consumption`, { date: '01-01-2023' });
         setMachineData(res.data);
+      } else if (activeView === 'performance') {
+        const res = await axios.post(`${API_URL}/api/model-performance`, { date: selectedDate });
+        setPerformanceData(res.data);
       }
       
       setLoading(false);
