@@ -171,6 +171,69 @@ class GridWiseAPITester:
                 return True
         return False
 
+    def test_model_status(self):
+        """Test model status endpoint"""
+        success, response = self.run_test(
+            "Model Status",
+            "GET",
+            "api/model-status",
+            200
+        )
+        if success:
+            required_keys = ['wind_trained', 'solar_trained']
+            if all(key in response for key in required_keys):
+                print(f"   Wind trained: {response['wind_trained']}")
+                print(f"   Solar trained: {response['solar_trained']}")
+                if response.get('wind_metrics'):
+                    print(f"   Wind metrics: {response['wind_metrics']}")
+                if response.get('solar_metrics'):
+                    print(f"   Solar metrics: {response['solar_metrics']}")
+                return True, response
+        return False, {}
+
+    def test_train_model(self, algorithm="gradient_boosting"):
+        """Test model training endpoint"""
+        success, response = self.run_test(
+            f"Train Model ({algorithm})",
+            "POST",
+            "api/train-model",
+            200,
+            data={
+                "model_type": "both",
+                "algorithm": algorithm,
+                "test_size": 0.2
+            },
+            timeout=60  # Training may take time
+        )
+        if success:
+            required_keys = ['status', 'algorithm', 'results']
+            if all(key in response for key in required_keys):
+                print(f"   Status: {response['status']}")
+                print(f"   Algorithm: {response['algorithm']}")
+                print(f"   Results: {response['results']}")
+                return True, response
+        return False, {}
+
+    def test_predict_with_trained(self, date="02-01-2022"):
+        """Test predictions with trained models"""
+        success, response = self.run_test(
+            "Predict with Trained Models",
+            "POST",
+            "api/predict-with-trained",
+            200,
+            data={"date": date},
+            timeout=15
+        )
+        if success:
+            print(f"   Wind predictions: {len(response.get('wind_predictions', []))}")
+            print(f"   Solar predictions: {len(response.get('solar_predictions', []))}")
+            if response.get('wind_improvement'):
+                print(f"   Wind improvement: {response['wind_improvement']}")
+            if response.get('solar_improvement'):
+                print(f"   Solar improvement: {response['solar_improvement']}")
+            return True, response
+        return False, {}
+
 def main():
     print("🚀 Starting GridWise API Testing...")
     print("=" * 50)
