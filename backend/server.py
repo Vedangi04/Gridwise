@@ -338,6 +338,208 @@ async def get_model_performance(data: dict):
         "selected_date": selected_date
     }
 
+@app.post("/api/train-model")
+async def train_model(data: dict):
+    """Train improved prediction models using Gradient Boosting"""
+    global trained_models
+    
+    model_type = data.get('model_type', 'both')  # 'wind', 'solar', or 'both'
+    algorithm = data.get('algorithm', 'gradient_boosting')  # 'gradient_boosting' or 'random_forest'
+    test_size = data.get('test_size', 0.2)
+    
+    results = {}
+    
+    # Train Wind Model
+    if model_type in ['wind', 'both']:
+        X_wind, y_wind = extract_features(wind_data, 'wind')
+        X_train, X_test, y_train, y_test = train_test_split(X_wind, y_wind, test_size=test_size, random_state=42)
+        
+        if algorithm == 'gradient_boosting':
+            wind_model = GradientBoostingRegressor(
+                n_estimators=100, 
+                max_depth=5, 
+                learning_rate=0.1,
+                random_state=42
+            )
+        else:
+            wind_model = RandomForestRegressor(
+                n_estimators=100, 
+                max_depth=10,
+                random_state=42
+            )
+        
+        wind_model.fit(X_train, y_train)
+        
+        # Evaluate
+        y_pred_train = wind_model.predict(X_train)
+        y_pred_test = wind_model.predict(X_test)
+        
+        train_mae = mean_absolute_error(y_train, y_pred_train)
+        test_mae = mean_absolute_error(y_test, y_pred_test)
+        train_rmse = np.sqrt(mean_squared_error(y_train, y_pred_train))
+        test_rmse = np.sqrt(mean_squared_error(y_test, y_pred_test))
+        
+        # Calculate accuracy (as percentage)
+        train_mape = np.mean(np.abs((y_train - y_pred_train) / (y_train + 0.001))) * 100
+        test_mape = np.mean(np.abs((y_test - y_pred_test) / (y_test + 0.001))) * 100
+        
+        # Store model
+        trained_models['wind'] = wind_model
+        trained_models['wind_metrics'] = {
+            'train_mae': round(train_mae, 2),
+            'test_mae': round(test_mae, 2),
+            'train_rmse': round(train_rmse, 2),
+            'test_rmse': round(test_rmse, 2),
+            'train_accuracy': round(max(0, 100 - train_mape), 1),
+            'test_accuracy': round(max(0, 100 - test_mape), 1),
+            'samples_train': len(X_train),
+            'samples_test': len(X_test)
+        }
+        
+        # Save model to disk
+        joblib.dump(wind_model, os.path.join(MODELS_DIR, 'wind_model.joblib'))
+        
+        results['wind'] = trained_models['wind_metrics']
+    
+    # Train Solar Model
+    if model_type in ['solar', 'both']:
+        X_solar, y_solar = extract_features(solar_data, 'solar')
+        X_train, X_test, y_train, y_test = train_test_split(X_solar, y_solar, test_size=test_size, random_state=42)
+        
+        if algorithm == 'gradient_boosting':
+            solar_model = GradientBoostingRegressor(
+                n_estimators=100, 
+                max_depth=5, 
+                learning_rate=0.1,
+                random_state=42
+            )
+        else:
+            solar_model = RandomForestRegressor(
+                n_estimators=100, 
+                max_depth=10,
+                random_state=42
+            )
+        
+        solar_model.fit(X_train, y_train)
+        
+        # Evaluate
+        y_pred_train = solar_model.predict(X_train)
+        y_pred_test = solar_model.predict(X_test)
+        
+        train_mae = mean_absolute_error(y_train, y_pred_train)
+        test_mae = mean_absolute_error(y_test, y_pred_test)
+        train_rmse = np.sqrt(mean_squared_error(y_train, y_pred_train))
+        test_rmse = np.sqrt(mean_squared_error(y_test, y_pred_test))
+        
+        train_mape = np.mean(np.abs((y_train - y_pred_train) / (y_train + 0.001))) * 100
+        test_mape = np.mean(np.abs((y_test - y_pred_test) / (y_test + 0.001))) * 100
+        
+        # Store model
+        trained_models['solar'] = solar_model
+        trained_models['solar_metrics'] = {
+            'train_mae': round(train_mae, 2),
+            'test_mae': round(test_mae, 2),
+            'train_rmse': round(train_rmse, 2),
+            'test_rmse': round(test_rmse, 2),
+            'train_accuracy': round(max(0, 100 - train_mape), 1),
+            'test_accuracy': round(max(0, 100 - test_mape), 1),
+            'samples_train': len(X_train),
+            'samples_test': len(X_test)
+        }
+        
+        # Save model to disk
+        joblib.dump(solar_model, os.path.join(MODELS_DIR, 'solar_model.joblib'))
+        
+        results['solar'] = trained_models['solar_metrics']
+    
+    return {
+        "status": "success",
+        "algorithm": algorithm,
+        "results": results,
+        "message": f"Models trained successfully using {algorithm.replace('_', ' ').title()}"
+    }
+
+@app.get("/api/model-status")
+async def get_model_status():
+    """Get status of trained models"""
+    return {
+        "wind_trained": trained_models['wind'] is not None,
+        "solar_trained": trained_models['solar'] is not None,
+        "wind_metrics": trained_models['wind_metrics'],
+        "solar_metrics": trained_models['solar_metrics']
+    }
+
+@app.post("/api/predict-with-trained")
+async def predict_with_trained(data: dict):
+    """Get predictions using the trained models"""
+    date_str = data.get('date', '02-01-2022')
+    
+    wind_filtered = filter_by_date(wind_data, date_str)
+    solar_filtered = filter_by_date(solar_data, date_str)
+    
+    wind_predictions = []
+    solar_predictions = []
+    
+    # Wind predictions
+    if trained_models['wind'] is not None and not wind_filtered.empty:
+        X_wind, y_actual = extract_features(wind_filtered, 'wind')
+        y_pred = trained_models['wind'].predict(X_wind)
+        
+        for i, (_, row) in enumerate(wind_filtered.iterrows()):
+            time_parts = str(row['time']).split(' ')
+            hour = time_parts[1] if len(time_parts) > 1 else '00:00'
+            wind_predictions.append({
+                "time": hour,
+                "actual": round(y_actual[i], 2),
+                "original_pred": round(float(row['PredictedPower']) * 100, 2),
+                "improved_pred": round(y_pred[i], 2)
+            })
+    
+    # Solar predictions
+    if trained_models['solar'] is not None and not solar_filtered.empty:
+        X_solar, y_actual = extract_features(solar_filtered, 'solar')
+        y_pred = trained_models['solar'].predict(X_solar)
+        
+        for i, (_, row) in enumerate(solar_filtered.iterrows()):
+            time_parts = str(row['time']).split(' ')
+            hour = time_parts[1] if len(time_parts) > 1 else '00:00'
+            solar_predictions.append({
+                "time": hour,
+                "actual": round(y_actual[i], 2),
+                "original_pred": round(float(row['PredictedPower']) * 100, 2),
+                "improved_pred": round(y_pred[i], 2)
+            })
+    
+    # Calculate improvement metrics
+    wind_improvement = None
+    solar_improvement = None
+    
+    if wind_predictions:
+        original_mae = np.mean([abs(p['actual'] - p['original_pred']) for p in wind_predictions])
+        improved_mae = np.mean([abs(p['actual'] - p['improved_pred']) for p in wind_predictions])
+        wind_improvement = {
+            "original_mae": round(original_mae, 2),
+            "improved_mae": round(improved_mae, 2),
+            "improvement_pct": round((original_mae - improved_mae) / original_mae * 100, 1) if original_mae > 0 else 0
+        }
+    
+    if solar_predictions:
+        original_mae = np.mean([abs(p['actual'] - p['original_pred']) for p in solar_predictions])
+        improved_mae = np.mean([abs(p['actual'] - p['improved_pred']) for p in solar_predictions])
+        solar_improvement = {
+            "original_mae": round(original_mae, 2),
+            "improved_mae": round(improved_mae, 2),
+            "improvement_pct": round((original_mae - improved_mae) / original_mae * 100, 1) if original_mae > 0 else 0
+        }
+    
+    return {
+        "wind_predictions": wind_predictions,
+        "solar_predictions": solar_predictions,
+        "wind_improvement": wind_improvement,
+        "solar_improvement": solar_improvement,
+        "date": date_str
+    }
+
 @app.post("/api/ai-insights")
 async def get_ai_insights(data: dict):
     """Generate AI insights using Claude"""
