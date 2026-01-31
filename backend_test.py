@@ -4,7 +4,7 @@ import json
 from datetime import datetime
 
 class GridWiseAPITester:
-    def __init__(self, base_url="http://localhost:8001"):
+    def __init__(self, base_url="https://work-1-rnyltbyvfgboejex.prod-runtime.all-hands.dev"):
         self.base_url = base_url
         self.tests_run = 0
         self.tests_passed = 0
