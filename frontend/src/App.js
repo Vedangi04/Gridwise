@@ -92,34 +92,37 @@ function App() {
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      if (activeView === 'dashboard' || activeView === 'wind' || activeView === 'solar') {
-        const [dashRes, windRes, solarRes] = await Promise.all([
-          axios.post(`${API_URL}/api/dashboard-summary`, { date: selectedDate }),
-          axios.post(`${API_URL}/api/wind-prediction`, { date: selectedDate }),
-          axios.post(`${API_URL}/api/solar-prediction`, { date: selectedDate })
-        ]);
-        setDashboardData(dashRes.data);
-        setWindData(windRes.data);
-        setSolarData(solarRes.data);
-      }
+      // Fetch energy data in parallel
+      const requests = [];
       
+      if (activeView === 'dashboard' || activeView === 'wind') {
+        requests.push(axios.post(`${API_URL}/api/wind-prediction`, { date: selectedDate }).then(res => setWindData(res.data)));
+      }
+      if (activeView === 'dashboard' || activeView === 'solar') {
+        requests.push(axios.post(`${API_URL}/api/solar-prediction`, { date: selectedDate }).then(res => setSolarData(res.data)));
+      }
+      if (activeView === 'dashboard') {
+        requests.push(axios.post(`${API_URL}/api/dashboard-summary`, { date: selectedDate }).then(res => setDashboardData(res.data)));
+      }
       if (activeView === 'machines' || activeView === 'dashboard') {
         const machineDate = selectedDate.includes('2023') ? selectedDate : '01-01-2023';
-        const machRes = await axios.post(`${API_URL}/api/machine-consumption`, { date: machineDate });
-        setMachineData(machRes.data);
+        requests.push(axios.post(`${API_URL}/api/machine-consumption`, { date: machineDate }).then(res => setMachineData(res.data)));
       }
       
-      // Fetch AI insight
-      const aiRes = await axios.post(`${API_URL}/api/ai-insights`, { 
+      await Promise.all(requests);
+      setLoading(false);
+      
+      // Fetch AI insight asynchronously (non-blocking)
+      axios.post(`${API_URL}/api/ai-insights`, { 
         date: selectedDate, 
         context: activeView 
-      });
-      setAiInsight(aiRes.data.insight);
+      }).then(aiRes => setAiInsight(aiRes.data.insight))
+        .catch(() => setAiInsight('Analyzing energy patterns...'));
       
     } catch (err) {
       console.error('Fetch error:', err);
+      setLoading(false);
     }
-    setLoading(false);
   }, [selectedDate, activeView]);
 
   useEffect(() => {
