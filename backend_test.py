@@ -149,6 +149,28 @@ class GridWiseAPITester:
                 return True
         return False
 
+    def test_model_performance(self, date="02-01-2022"):
+        """Test model performance endpoint"""
+        success, response = self.run_test(
+            "Model Performance",
+            "POST",
+            "api/model-performance",
+            200,
+            data={"date": date},
+            timeout=15  # May take time for calculations
+        )
+        if success:
+            required_keys = ['wind_trend', 'solar_trend', 'wind_overall', 'solar_overall', 'wind_residuals', 'solar_residuals']
+            if all(key in response for key in required_keys):
+                print(f"   Wind trend data points: {len(response['wind_trend'])}")
+                print(f"   Solar trend data points: {len(response['solar_trend'])}")
+                print(f"   Wind overall metrics: {response['wind_overall']}")
+                print(f"   Solar overall metrics: {response['solar_overall']}")
+                print(f"   Wind residuals: {len(response['wind_residuals'])}")
+                print(f"   Solar residuals: {len(response['solar_residuals'])}")
+                return True
+        return False
+
 def main():
     print("🚀 Starting GridWise API Testing...")
     print("=" * 50)
