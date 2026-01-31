@@ -3,11 +3,16 @@ from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 import os
 import pandas as pd
+import numpy as np
 from datetime import datetime
 import asyncio
 import random
 import json
 from emergentintegrations.llm.chat import LlmChat, UserMessage
+from sklearn.ensemble import GradientBoostingRegressor, RandomForestRegressor
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_absolute_error, mean_squared_error
+import joblib
 
 load_dotenv()
 
@@ -23,6 +28,16 @@ app.add_middleware(
 
 # Load data files
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+MODELS_DIR = os.path.join(BASE_DIR, 'models')
+os.makedirs(MODELS_DIR, exist_ok=True)
+
+# Store trained models in memory
+trained_models = {
+    'wind': None,
+    'solar': None,
+    'wind_metrics': None,
+    'solar_metrics': None
+}
 
 def load_csv_data():
     wind_df = pd.read_csv(os.path.join(BASE_DIR, 'test_predictions.csv'))
@@ -44,6 +59,38 @@ def filter_by_date(df, date_str):
     df_copy['parsed_date'] = df_copy['time'].apply(lambda x: x.split(' ')[0] if ' ' in str(x) else x)
     filtered = df_copy[df_copy['parsed_date'] == date_str]
     return filtered
+
+def extract_features(df, model_type='wind'):
+    """Extract features for ML training"""
+    features = []
+    targets = []
+    
+    for _, row in df.iterrows():
+        time_str = str(row['time'])
+        if ' ' in time_str:
+            date_part, time_part = time_str.split(' ')
+            hour = int(time_part.split(':')[0])
+            day_parts = date_part.split('-')
+            day = int(day_parts[0])
+            month = int(day_parts[1])
+        else:
+            hour = 0
+            day = 1
+            month = 1
+        
+        # Feature engineering
+        hour_sin = np.sin(2 * np.pi * hour / 24)
+        hour_cos = np.cos(2 * np.pi * hour / 24)
+        day_sin = np.sin(2 * np.pi * day / 31)
+        month_sin = np.sin(2 * np.pi * month / 12)
+        
+        # Use predicted power as a feature (existing model's prediction)
+        predicted = float(row['PredictedPower'])
+        
+        features.append([hour, hour_sin, hour_cos, day_sin, month_sin, predicted, hour**2])
+        targets.append(float(row['ActualPower']) * 100)
+    
+    return np.array(features), np.array(targets)
 
 @app.get("/api/health")
 async def health_check():
