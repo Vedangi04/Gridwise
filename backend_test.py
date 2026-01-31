@@ -196,6 +196,7 @@ def main():
     test_results.append(tester.test_solar_prediction(test_date))
     test_results.append(tester.test_machine_consumption(machine_date))
     test_results.append(tester.test_dashboard_summary(test_date))
+    test_results.append(tester.test_model_performance(test_date))  # New endpoint
     test_results.append(tester.test_ai_insights(test_date))
     
     # Print summary
