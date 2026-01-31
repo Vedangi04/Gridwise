@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { 
   Wind, Sun, Zap, Activity, TrendingUp, AlertTriangle, 
-  BarChart3, Calendar, Brain, Radio, ChevronRight, Menu,
-  Battery, Gauge
+  BarChart3, Calendar, Brain, ChevronRight, Menu,
+  Battery, Gauge, Target, BarChart2
 } from 'lucide-react';
 import {
   LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer,
-  PieChart, Pie, Cell, AreaChart, Area
+  PieChart, Pie, Cell, AreaChart, Area, BarChart, Bar, ComposedChart,
+  ReferenceLine
 } from 'recharts';
 import axios from 'axios';
 
@@ -20,7 +21,7 @@ const CustomTooltip = ({ active, payload, label }) => {
         <p className="text-zinc-400 text-xs mb-2">{label}</p>
         {payload.map((entry, index) => (
           <p key={index} className="data-value text-sm" style={{ color: entry.color }}>
-            {entry.name}: <span className="font-semibold">{entry.value.toFixed(2)}</span> kW
+            {entry.name}: <span className="font-semibold">{typeof entry.value === 'number' ? entry.value.toFixed(2) : entry.value}</span>
           </p>
         ))}
       </div>
@@ -28,6 +29,20 @@ const CustomTooltip = ({ active, payload, label }) => {
   }
   return null;
 };
+
+// Metric Card Component for Model Performance
+const MetricCard = ({ label, value, unit, subtext, color, icon: Icon }) => (
+  <div className="card p-4 animate-fade-in">
+    <div className="flex items-center gap-2 mb-2">
+      {Icon && <Icon className={`w-4 h-4 text-${color}`} />}
+      <span className="text-zinc-500 text-xs uppercase tracking-wide">{label}</span>
+    </div>
+    <p className={`text-2xl font-heading font-bold text-${color} data-value`}>
+      {value}<span className="text-sm text-zinc-500 ml-1">{unit}</span>
+    </p>
+    {subtext && <p className="text-zinc-500 text-xs mt-1">{subtext}</p>}
+  </div>
+);
 
 // Stat Card Component
 const StatCard = ({ icon: Icon, label, value, unit, color, trend }) => (
@@ -64,6 +79,7 @@ const navItems = [
   { id: 'wind', label: 'Wind Power', icon: Wind },
   { id: 'solar', label: 'Solar Power', icon: Sun },
   { id: 'machines', label: 'Machine Consumption', icon: Zap },
+  { id: 'performance', label: 'Model Performance', icon: Target },
 ];
 
 function App() {
