@@ -1,0 +1,155 @@
+{
+  "identity": {
+    "name": "GridWise",
+    "archetype": "The Data Commander",
+    "vibe": "Professional, High-Density, Real-Time, Engineering-First",
+    "description": "A dark-mode, high-contrast energy management dashboard designed to impress technical interviewers. It prioritizes data density, legibility, and real-time feedback over decorative fluff."
+  },
+  "typography": {
+    "fonts": {
+      "heading": {
+        "family": "Chivo",
+        "url": "https://fonts.googleapis.com/css2?family=Chivo:wght@300;400;700;900&display=swap",
+        "usage": "Headings, KPIs, Section Titles",
+        "weights": ["700", "900"],
+        "tracking": "tracking-tight"
+      },
+      "body": {
+        "family": "Manrope",
+        "url": "https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600&display=swap",
+        "usage": "UI Text, Labels, Tooltips",
+        "weights": ["400", "500"]
+      },
+      "mono": {
+        "family": "JetBrains Mono",
+        "url": "https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap",
+        "usage": "Data Values, Timestamps, Code Snippets, Chart Axes",
+        "weights": ["400", "500"]
+      }
+    },
+    "rules": [
+      "Use Chivo Black (900) for main page titles (text-4xl+).",
+      "Use JetBrains Mono for ALL numerical data and chart tooltips.",
+      "Never use Inter for headings.",
+      "Keep line-height tight (leading-none) for large numbers."
+    ]
+  },
+  "colors": {
+    "theme": "dark",
+    "palette": {
+      "background": {
+        "default": "#09090B",
+        "surface": "#18181B",
+        "surface_highlight": "#27272A"
+      },
+      "primary": {
+        "main": "#3B82F6",
+        "hover": "#2563EB",
+        "foreground": "#FFFFFF"
+      },
+      "status": {
+        "success": "#10B981",
+        "warning": "#F59E0B",
+        "error": "#EF4444",
+        "info": "#0EA5E9"
+      },
+      "energy": {
+        "wind": "#0EA5E9",
+        "solar": "#F59E0B",
+        "consumption": "#8B5CF6"
+      },
+      "text": {
+        "primary": "#FAFAFA",
+        "secondary": "#A1A1AA",
+        "muted": "#52525B"
+      },
+      "border": {
+        "default": "#27272A",
+        "active": "#3F3F46"
+      }
+    },
+    "gradients": {
+      "subtle_glow": "radial-gradient(circle at center, rgba(59, 130, 246, 0.15) 0%, rgba(9, 9, 11, 0) 70%)",
+      "grid_mask": "linear-gradient(to bottom, transparent, black)"
+    }
+  },
+  "layout": {
+    "grid_system": "Bento Grid Mode B (High Density)",
+    "spacing": {
+      "container_padding": "p-6 md:p-8",
+      "gap": "gap-4 md:gap-6",
+      "internal_padding": "p-5"
+    },
+    "structure": {
+      "sidebar": "Fixed left, w-64, border-r border-white/10",
+      "header": "Sticky top, glassmorphism, h-16",
+      "main": "ml-64 p-8"
+    }
+  },
+  "components": {
+    "cards": {
+      "style": "Flat surface with 1px border. No drop shadows in dark mode.",
+      "classes": "bg-zinc-900/50 border border-white/10 rounded-xl backdrop-blur-sm"
+    },
+    "charts": {
+      "library": "Recharts",
+      "style": "Minimalist. Hide grid lines or make them very subtle (opacity 0.1). Custom tooltips are mandatory.",
+      "colors": ["#0EA5E9", "#F59E0B", "#10B981", "#EF4444"]
+    },
+    "buttons": {
+      "primary": "bg-blue-600 hover:bg-blue-700 text-white rounded-lg px-4 py-2 font-medium transition-all",
+      "ghost": "hover:bg-white/5 text-zinc-400 hover:text-white transition-colors"
+    },
+    "inputs": {
+      "style": "bg-zinc-950 border border-zinc-800 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 rounded-md"
+    }
+  },
+  "visual_enhancers": {
+    "glassmorphism": "backdrop-blur-xl bg-black/40 border-b border-white/5",
+    "borders": "1px solid rgba(255,255,255,0.08)",
+    "glows": "Use sparingly on active states or 'live' indicators.",
+    "animations": {
+      "hover": "transition-all duration-200 ease-out",
+      "enter": "animate-in fade-in slide-in-from-bottom-4 duration-500"
+    }
+  },
+  "assets": {
+    "icons": "Lucide React (Stroke width 1.5px for elegance)",
+    "images": {
+      "note": "Image selector tool failed. Use these placeholders or search terms if needed.",
+      "placeholders": [
+        {
+          "category": "wind",
+          "term": "wind turbine dark",
+          "url": "https://images.unsplash.com/photo-1466611653911-95081537e5b7?q=80&w=2070&auto=format&fit=crop"
+        },
+        {
+          "category": "solar",
+          "term": "solar panels sunset",
+          "url": "https://images.unsplash.com/photo-1509391366360-2e959784a276?q=80&w=2072&auto=format&fit=crop"
+        },
+        {
+          "category": "tech",
+          "term": "server room",
+          "url": "https://images.unsplash.com/photo-1558494949-efc5e60754f5?q=80&w=2000&auto=format&fit=crop"
+        }
+      ]
+    }
+  },
+  "instructions_to_main_agent": [
+    "1. SCAFFOLD: Create a new React + Vite + Tailwind project. Do not use the existing 'horizon-ui-chakra' folder. Start fresh in '/app/frontend_new' or similar.",
+    "2. INSTALL: shadcn/ui, recharts, lucide-react, framer-motion, clsx, tailwind-merge.",
+    "3. THEME: Force Dark Mode. Add 'dark' class to html/body or configure tailwind to use dark mode by default.",
+    "4. LAYOUT: Implement the Sidebar Layout with a 'DashboardLayout' component.",
+    "5. DATA: Mock the energy data (wind, solar, consumption) with realistic time-series arrays.",
+    "6. AI INSIGHTS: Create a panel that simulates AI analysis (e.g., 'Efficiency up 12% due to optimal wind conditions').",
+    "7. REAL-TIME: Use `setInterval` to update a 'Live Power' number every 2 seconds to simulate WebSocket.",
+    "8. TESTING: Add `data-testid` to all interactive elements."
+  ],
+  "universal_guidelines": [
+    "Avoid 'AI Slop': No generic gradients, no centered text layouts.",
+    "Density: This is a dashboard. Use the screen real estate. Don't leave massive empty gaps.",
+    "Contrast: Ensure text is readable against the dark background. Use Zinc-400 for labels, White for values.",
+    "Motion: Add subtle layout transitions using framer-motion (layout prop)."
+  ]
+}
