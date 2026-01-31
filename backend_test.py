@@ -259,8 +259,28 @@ def main():
     test_results.append(tester.test_solar_prediction(test_date))
     test_results.append(tester.test_machine_consumption(machine_date))
     test_results.append(tester.test_dashboard_summary(test_date))
-    test_results.append(tester.test_model_performance(test_date))  # New endpoint
+    test_results.append(tester.test_model_performance(test_date))
     test_results.append(tester.test_ai_insights(test_date))
+    
+    # Test new Model Training endpoints
+    print(f"\n🧠 Testing Model Training Features...")
+    model_status_success, model_status = tester.test_model_status()
+    test_results.append(model_status_success)
+    
+    # Test model training with Gradient Boosting
+    train_gb_success, train_gb_response = tester.test_train_model("gradient_boosting")
+    test_results.append(train_gb_success)
+    
+    # Test model training with Random Forest
+    train_rf_success, train_rf_response = tester.test_train_model("random_forest")
+    test_results.append(train_rf_success)
+    
+    # Test predictions with trained models (only if training succeeded)
+    if train_gb_success or train_rf_success:
+        predict_success, predict_response = tester.test_predict_with_trained(test_date)
+        test_results.append(predict_success)
+    else:
+        print("⚠️  Skipping trained predictions test - no models trained successfully")
     
     # Print summary
     print("\n" + "=" * 50)
