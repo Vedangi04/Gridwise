@@ -179,6 +179,118 @@ async def get_dashboard_summary(data: dict):
         "solar_percentage": round((solar_total / combined_total * 100) if combined_total > 0 else 0, 1)
     }
 
+@app.post("/api/model-performance")
+async def get_model_performance(data: dict):
+    """Calculate comprehensive model performance metrics"""
+    import numpy as np
+    
+    # Get all available dates for trend analysis
+    dates = wind_data['time'].apply(lambda x: x.split(' ')[0] if ' ' in str(x) else x).unique().tolist()[:30]
+    
+    wind_metrics_trend = []
+    solar_metrics_trend = []
+    
+    for date_str in dates:
+        wind_filtered = filter_by_date(wind_data, date_str)
+        solar_filtered = filter_by_date(solar_data, date_str)
+        
+        if not wind_filtered.empty:
+            actual = wind_filtered['ActualPower'].values * 100
+            predicted = wind_filtered['PredictedPower'].values * 100
+            
+            mae = np.mean(np.abs(actual - predicted))
+            rmse = np.sqrt(np.mean((actual - predicted) ** 2))
+            mape = np.mean(np.abs((actual - predicted) / (actual + 0.001))) * 100
+            accuracy = max(0, 100 - mape)
+            
+            wind_metrics_trend.append({
+                "date": date_str,
+                "mae": round(mae, 2),
+                "rmse": round(rmse, 2),
+                "mape": round(mape, 2),
+                "accuracy": round(accuracy, 1)
+            })
+        
+        if not solar_filtered.empty:
+            actual = solar_filtered['ActualPower'].values * 100
+            predicted = solar_filtered['PredictedPower'].values * 100
+            
+            mae = np.mean(np.abs(actual - predicted))
+            rmse = np.sqrt(np.mean((actual - predicted) ** 2))
+            mape = np.mean(np.abs((actual - predicted) / (actual + 0.001))) * 100
+            accuracy = max(0, 100 - mape)
+            
+            solar_metrics_trend.append({
+                "date": date_str,
+                "mae": round(mae, 2),
+                "rmse": round(rmse, 2),
+                "mape": round(mape, 2),
+                "accuracy": round(accuracy, 1)
+            })
+    
+    # Calculate overall metrics
+    wind_overall = {
+        "avg_mae": round(np.mean([m['mae'] for m in wind_metrics_trend]), 2) if wind_metrics_trend else 0,
+        "avg_rmse": round(np.mean([m['rmse'] for m in wind_metrics_trend]), 2) if wind_metrics_trend else 0,
+        "avg_mape": round(np.mean([m['mape'] for m in wind_metrics_trend]), 2) if wind_metrics_trend else 0,
+        "avg_accuracy": round(np.mean([m['accuracy'] for m in wind_metrics_trend]), 1) if wind_metrics_trend else 0,
+        "best_day": max(wind_metrics_trend, key=lambda x: x['accuracy'])['date'] if wind_metrics_trend else "",
+        "worst_day": min(wind_metrics_trend, key=lambda x: x['accuracy'])['date'] if wind_metrics_trend else ""
+    }
+    
+    solar_overall = {
+        "avg_mae": round(np.mean([m['mae'] for m in solar_metrics_trend]), 2) if solar_metrics_trend else 0,
+        "avg_rmse": round(np.mean([m['rmse'] for m in solar_metrics_trend]), 2) if solar_metrics_trend else 0,
+        "avg_mape": round(np.mean([m['mape'] for m in solar_metrics_trend]), 2) if solar_metrics_trend else 0,
+        "avg_accuracy": round(np.mean([m['accuracy'] for m in solar_metrics_trend]), 1) if solar_metrics_trend else 0,
+        "best_day": max(solar_metrics_trend, key=lambda x: x['accuracy'])['date'] if solar_metrics_trend else "",
+        "worst_day": min(solar_metrics_trend, key=lambda x: x['accuracy'])['date'] if solar_metrics_trend else ""
+    }
+    
+    # Residuals for selected date (hourly breakdown)
+    selected_date = data.get('date', '02-01-2022')
+    wind_filtered = filter_by_date(wind_data, selected_date)
+    solar_filtered = filter_by_date(solar_data, selected_date)
+    
+    wind_residuals = []
+    solar_residuals = []
+    
+    for _, row in wind_filtered.iterrows():
+        time_parts = str(row['time']).split(' ')
+        hour = time_parts[1] if len(time_parts) > 1 else '00:00'
+        actual = float(row['ActualPower']) * 100
+        predicted = float(row['PredictedPower']) * 100
+        wind_residuals.append({
+            "time": hour,
+            "actual": round(actual, 2),
+            "predicted": round(predicted, 2),
+            "residual": round(actual - predicted, 2),
+            "error_pct": round(abs(actual - predicted) / (actual + 0.001) * 100, 1)
+        })
+    
+    for _, row in solar_filtered.iterrows():
+        time_parts = str(row['time']).split(' ')
+        hour = time_parts[1] if len(time_parts) > 1 else '00:00'
+        actual = float(row['ActualPower']) * 100
+        predicted = float(row['PredictedPower']) * 100
+        solar_residuals.append({
+            "time": hour,
+            "actual": round(actual, 2),
+            "predicted": round(predicted, 2),
+            "residual": round(actual - predicted, 2),
+            "error_pct": round(abs(actual - predicted) / (actual + 0.001) * 100, 1)
+        })
+    
+    return {
+        "wind_trend": wind_metrics_trend,
+        "solar_trend": solar_metrics_trend,
+        "wind_overall": wind_overall,
+        "solar_overall": solar_overall,
+        "wind_residuals": wind_residuals,
+        "solar_residuals": solar_residuals,
+        "selected_date": selected_date
+    }
+
 @app.post("/api/ai-insights")
 async def get_ai_insights(data: dict):
     """Generate AI insights using Claude"""
