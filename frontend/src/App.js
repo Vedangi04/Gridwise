@@ -562,13 +562,204 @@ function App() {
               {/* Model Performance View */}
               {activeView === 'performance' && (
                 <div className="space-y-6" data-testid="performance-view">
-                  {/* Overall Metrics Summary */}
+                  {/* Model Training Section */}
+                  <div className="card p-5 border-l-4 border-l-success" data-testid="model-training-section">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-3">
+                        <Brain className="w-5 h-5 text-success" />
+                        <div>
+                          <h3 className="font-heading font-semibold text-white">Model Training</h3>
+                          <p className="text-zinc-500 text-xs">Train improved prediction models using machine learning</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <select
+                          value={selectedAlgorithm}
+                          onChange={(e) => setSelectedAlgorithm(e.target.value)}
+                          className="bg-surface border border-white/10 rounded-lg px-3 py-2 text-sm text-white font-mono focus:outline-none focus:border-success"
+                          data-testid="algorithm-selector"
+                        >
+                          <option value="gradient_boosting">Gradient Boosting</option>
+                          <option value="random_forest">Random Forest</option>
+                        </select>
+                        <button
+                          onClick={() => trainModels('both')}
+                          disabled={trainingInProgress}
+                          data-testid="train-models-btn"
+                          className={`px-4 py-2 rounded-lg font-medium text-sm transition-all flex items-center gap-2
+                            ${trainingInProgress 
+                              ? 'bg-zinc-700 text-zinc-400 cursor-not-allowed' 
+                              : 'bg-success text-white hover:bg-success/80'}`}
+                        >
+                          {trainingInProgress ? (
+                            <>
+                              <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                              Training...
+                            </>
+                          ) : (
+                            <>
+                              <Target className="w-4 h-4" />
+                              Train Models
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                    
+                    {/* Training Results */}
+                    {(modelStatus.wind_trained || modelStatus.solar_trained) && (
+                      <div className="grid grid-cols-2 gap-4 mt-4 pt-4 border-t border-white/10">
+                        {modelStatus.wind_metrics && (
+                          <div className="bg-wind/5 border border-wind/20 rounded-lg p-4">
+                            <div className="flex items-center gap-2 mb-3">
+                              <Wind className="w-4 h-4 text-wind" />
+                              <span className="text-white font-medium text-sm">Wind Model (Trained)</span>
+                              <span className="ml-auto text-xs px-2 py-0.5 bg-success/20 text-success rounded-full">Active</span>
+                            </div>
+                            <div className="grid grid-cols-2 gap-2 text-xs">
+                              <div>
+                                <span className="text-zinc-500">Train Accuracy</span>
+                                <p className="text-wind font-mono text-lg">{modelStatus.wind_metrics.train_accuracy}%</p>
+                              </div>
+                              <div>
+                                <span className="text-zinc-500">Test Accuracy</span>
+                                <p className="text-wind font-mono text-lg">{modelStatus.wind_metrics.test_accuracy}%</p>
+                              </div>
+                              <div>
+                                <span className="text-zinc-500">Test MAE</span>
+                                <p className="text-white font-mono">{modelStatus.wind_metrics.test_mae} kW</p>
+                              </div>
+                              <div>
+                                <span className="text-zinc-500">Test RMSE</span>
+                                <p className="text-white font-mono">{modelStatus.wind_metrics.test_rmse} kW</p>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                        {modelStatus.solar_metrics && (
+                          <div className="bg-solar/5 border border-solar/20 rounded-lg p-4">
+                            <div className="flex items-center gap-2 mb-3">
+                              <Sun className="w-4 h-4 text-solar" />
+                              <span className="text-white font-medium text-sm">Solar Model (Trained)</span>
+                              <span className="ml-auto text-xs px-2 py-0.5 bg-success/20 text-success rounded-full">Active</span>
+                            </div>
+                            <div className="grid grid-cols-2 gap-2 text-xs">
+                              <div>
+                                <span className="text-zinc-500">Train Accuracy</span>
+                                <p className="text-solar font-mono text-lg">{modelStatus.solar_metrics.train_accuracy}%</p>
+                              </div>
+                              <div>
+                                <span className="text-zinc-500">Test Accuracy</span>
+                                <p className="text-solar font-mono text-lg">{modelStatus.solar_metrics.test_accuracy}%</p>
+                              </div>
+                              <div>
+                                <span className="text-zinc-500">Test MAE</span>
+                                <p className="text-white font-mono">{modelStatus.solar_metrics.test_mae} kW</p>
+                              </div>
+                              <div>
+                                <span className="text-zinc-500">Test RMSE</span>
+                                <p className="text-white font-mono">{modelStatus.solar_metrics.test_rmse} kW</p>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                    
+                    {/* Improvement Comparison */}
+                    {trainedPredictions && (trainedPredictions.wind_improvement || trainedPredictions.solar_improvement) && (
+                      <div className="mt-4 pt-4 border-t border-white/10">
+                        <h4 className="text-white font-medium text-sm mb-3">Prediction Improvement for {selectedDate}</h4>
+                        <div className="grid grid-cols-2 gap-4">
+                          {trainedPredictions.wind_improvement && (
+                            <div className="flex items-center gap-4 bg-zinc-800/50 rounded-lg p-3">
+                              <Wind className="w-8 h-8 text-wind" />
+                              <div>
+                                <p className="text-zinc-400 text-xs">Wind MAE Improvement</p>
+                                <p className="text-white font-mono">
+                                  {trainedPredictions.wind_improvement.original_mae} → {trainedPredictions.wind_improvement.improved_mae} kW
+                                </p>
+                                <p className={`text-sm font-bold ${trainedPredictions.wind_improvement.improvement_pct > 0 ? 'text-success' : 'text-error'}`}>
+                                  {trainedPredictions.wind_improvement.improvement_pct > 0 ? '↑' : '↓'} {Math.abs(trainedPredictions.wind_improvement.improvement_pct)}% improvement
+                                </p>
+                              </div>
+                            </div>
+                          )}
+                          {trainedPredictions.solar_improvement && (
+                            <div className="flex items-center gap-4 bg-zinc-800/50 rounded-lg p-3">
+                              <Sun className="w-8 h-8 text-solar" />
+                              <div>
+                                <p className="text-zinc-400 text-xs">Solar MAE Improvement</p>
+                                <p className="text-white font-mono">
+                                  {trainedPredictions.solar_improvement.original_mae} → {trainedPredictions.solar_improvement.improved_mae} kW
+                                </p>
+                                <p className={`text-sm font-bold ${trainedPredictions.solar_improvement.improvement_pct > 0 ? 'text-success' : 'text-error'}`}>
+                                  {trainedPredictions.solar_improvement.improvement_pct > 0 ? '↑' : '↓'} {Math.abs(trainedPredictions.solar_improvement.improvement_pct)}% improvement
+                                </p>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Improved Predictions Chart */}
+                  {trainedPredictions && (trainedPredictions.wind_predictions?.length > 0 || trainedPredictions.solar_predictions?.length > 0) && (
+                    <div className="grid grid-cols-2 gap-6">
+                      {trainedPredictions.wind_predictions?.length > 0 && (
+                        <div className="card p-5" data-testid="improved-wind-chart">
+                          <h3 className="font-heading font-semibold text-white mb-2">Wind: Original vs Improved Predictions</h3>
+                          <p className="text-zinc-500 text-xs mb-4">Comparing baseline model with trained model</p>
+                          <ResponsiveContainer width="100%" height={250}>
+                            <LineChart data={trainedPredictions.wind_predictions}>
+                              <XAxis dataKey="time" stroke="#52525B" fontSize={10} fontFamily="JetBrains Mono" />
+                              <YAxis stroke="#52525B" fontSize={11} fontFamily="JetBrains Mono" />
+                              <Tooltip content={<CustomTooltip />} />
+                              <Line type="monotone" dataKey="actual" name="Actual" stroke="#10B981" strokeWidth={2} dot={false} />
+                              <Line type="monotone" dataKey="original_pred" name="Original" stroke="#EF4444" strokeWidth={2} strokeDasharray="5 5" dot={false} />
+                              <Line type="monotone" dataKey="improved_pred" name="Improved" stroke="#0EA5E9" strokeWidth={2} dot={false} />
+                            </LineChart>
+                          </ResponsiveContainer>
+                          <div className="flex justify-center gap-4 mt-2 text-xs">
+                            <span className="flex items-center gap-1"><span className="w-3 h-0.5 bg-success" /> Actual</span>
+                            <span className="flex items-center gap-1"><span className="w-3 h-0.5 bg-error border-dashed" /> Original</span>
+                            <span className="flex items-center gap-1"><span className="w-3 h-0.5 bg-wind" /> Improved</span>
+                          </div>
+                        </div>
+                      )}
+                      {trainedPredictions.solar_predictions?.length > 0 && (
+                        <div className="card p-5" data-testid="improved-solar-chart">
+                          <h3 className="font-heading font-semibold text-white mb-2">Solar: Original vs Improved Predictions</h3>
+                          <p className="text-zinc-500 text-xs mb-4">Comparing baseline model with trained model</p>
+                          <ResponsiveContainer width="100%" height={250}>
+                            <LineChart data={trainedPredictions.solar_predictions}>
+                              <XAxis dataKey="time" stroke="#52525B" fontSize={10} fontFamily="JetBrains Mono" />
+                              <YAxis stroke="#52525B" fontSize={11} fontFamily="JetBrains Mono" />
+                              <Tooltip content={<CustomTooltip />} />
+                              <Line type="monotone" dataKey="actual" name="Actual" stroke="#10B981" strokeWidth={2} dot={false} />
+                              <Line type="monotone" dataKey="original_pred" name="Original" stroke="#EF4444" strokeWidth={2} strokeDasharray="5 5" dot={false} />
+                              <Line type="monotone" dataKey="improved_pred" name="Improved" stroke="#F59E0B" strokeWidth={2} dot={false} />
+                            </LineChart>
+                          </ResponsiveContainer>
+                          <div className="flex justify-center gap-4 mt-2 text-xs">
+                            <span className="flex items-center gap-1"><span className="w-3 h-0.5 bg-success" /> Actual</span>
+                            <span className="flex items-center gap-1"><span className="w-3 h-0.5 bg-error" /> Original</span>
+                            <span className="flex items-center gap-1"><span className="w-3 h-0.5 bg-solar" /> Improved</span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Original Metrics Summary */}
                   <div className="grid grid-cols-2 gap-6">
                     {/* Wind Model Metrics */}
                     <div className="card p-5 border-l-4 border-l-wind">
                       <div className="flex items-center gap-3 mb-4">
                         <Wind className="w-5 h-5 text-wind" />
                         <h3 className="font-heading font-semibold text-white">Wind Model Performance</h3>
+                        <span className="text-xs px-2 py-0.5 bg-zinc-700 text-zinc-400 rounded-full">Original</span>
                       </div>
                       <div className="grid grid-cols-2 gap-4">
                         <MetricCard 
