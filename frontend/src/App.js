@@ -165,6 +165,45 @@ function App() {
     fetchData();
   }, [fetchData]);
 
+  // Train model function
+  const trainModels = async (modelType = 'both') => {
+    setTrainingInProgress(true);
+    try {
+      const res = await axios.post(`${API_URL}/api/train-model`, {
+        model_type: modelType,
+        algorithm: selectedAlgorithm,
+        test_size: 0.2
+      });
+      
+      // Update model status
+      const statusRes = await axios.get(`${API_URL}/api/model-status`);
+      setModelStatus(statusRes.data);
+      
+      // Fetch improved predictions for current date
+      const predRes = await axios.post(`${API_URL}/api/predict-with-trained`, { date: selectedDate });
+      setTrainedPredictions(predRes.data);
+      
+      // Refresh performance data
+      const perfRes = await axios.post(`${API_URL}/api/model-performance`, { date: selectedDate });
+      setPerformanceData(perfRes.data);
+      
+      return res.data;
+    } catch (err) {
+      console.error('Training error:', err);
+    } finally {
+      setTrainingInProgress(false);
+    }
+  };
+
+  // Fetch trained predictions when date changes
+  useEffect(() => {
+    if (modelStatus.wind_trained || modelStatus.solar_trained) {
+      axios.post(`${API_URL}/api/predict-with-trained`, { date: selectedDate })
+        .then(res => setTrainedPredictions(res.data))
+        .catch(console.error);
+    }
+  }, [selectedDate, modelStatus.wind_trained, modelStatus.solar_trained]);
+
   // WebSocket for real-time data
   useEffect(() => {
     const wsUrl = `${API_URL.replace('https://', 'wss://').replace('http://', 'ws://')}/api/ws/realtime`;
