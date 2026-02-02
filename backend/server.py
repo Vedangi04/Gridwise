@@ -14,7 +14,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_absolute_error, mean_squared_error
 import joblib
 
-load_dotenv()
+load_dotenv(override=False)
 
 app = FastAPI(title="GridWise API")
 
