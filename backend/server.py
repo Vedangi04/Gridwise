@@ -8,7 +8,7 @@ from datetime import datetime
 import asyncio
 import random
 import json
-from emergentintegrations.llm.chat import LlmChat, UserMessage
+# from emergentintegrations.llm.chat import LlmChat, UserMessage  # Not installed
 from sklearn.ensemble import GradientBoostingRegressor, RandomForestRegressor
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_absolute_error, mean_squared_error
@@ -553,12 +553,8 @@ async def predict_with_trained(data: dict):
 
 @app.post("/api/ai-insights")
 async def get_ai_insights(data: dict):
-    """Generate AI insights using Claude"""
+    """Generate AI insights - simplified fallback version"""
     try:
-        api_key = os.environ.get('EMERGENT_LLM_KEY')
-        if not api_key:
-            return {"insight": "AI insights unavailable - API key not configured"}
-        
         date_str = data.get('date', '02-01-2022')
         context = data.get('context', 'general')
         
@@ -576,26 +572,33 @@ async def get_ai_insights(data: dict):
         if not solar_filtered.empty:
             solar_pred_accuracy = 100 - (abs(solar_filtered['ActualPower'] - solar_filtered['PredictedPower']).mean() / solar_filtered['ActualPower'].mean() * 100)
         
-        prompt = f"""As an energy analyst AI, provide a brief (2-3 sentences) insight for a data analyst reviewing this energy grid data:
-
-Date: {date_str}
-Wind Power Average: {wind_avg:.1f} kW (Prediction accuracy: {wind_pred_accuracy:.1f}%)
-Solar Power Average: {solar_avg:.1f} kW (Prediction accuracy: {solar_pred_accuracy:.1f}%)
-Context: {context}
-
-Provide actionable insights about efficiency, prediction model performance, or operational recommendations. Be specific and data-driven."""
+        # Generate rule-based insights
+        insights = []
         
-        chat = LlmChat(
-            api_key=api_key,
-            session_id=f"gridwise-{date_str}-{context}",
-            system_message="You are an expert energy grid analyst providing concise, actionable insights."
-        ).with_model("anthropic", "claude-sonnet-4-5-20250929")
+        if wind_avg > 60:
+            insights.append(f"Wind generation is strong at {wind_avg:.1f} kW.")
+        elif wind_avg < 30:
+            insights.append(f"Wind generation is low at {wind_avg:.1f} kW.")
+        else:
+            insights.append(f"Wind generation is moderate at {wind_avg:.1f} kW.")
         
-        response = await chat.send_message(UserMessage(text=prompt))
+        if solar_avg > 60:
+            insights.append(f"Solar generation is strong at {solar_avg:.1f} kW.")
+        elif solar_avg < 30:
+            insights.append(f"Solar generation is low at {solar_avg:.1f} kW.")
+        else:
+            insights.append(f"Solar generation is moderate at {solar_avg:.1f} kW.")
         
-        return {"insight": response, "date": date_str}
+        if wind_pred_accuracy > 80:
+            insights.append("Wind prediction model is performing well.")
+        elif wind_pred_accuracy < 60:
+            insights.append("Wind prediction model needs improvement.")
+        
+        insight_text = " ".join(insights)
+        
+        return {"insight": insight_text, "date": date_str}
     except Exception as e:
-        return {"insight": f"Analysis suggests wind and solar generation are within normal parameters. Consider reviewing prediction models for improved accuracy.", "error": str(e)}
+        return {"insight": "Analysis suggests wind and solar generation are within normal parameters. Consider reviewing prediction models for improved accuracy.", "error": str(e)}
 
 # WebSocket for real-time data streaming
 class ConnectionManager:

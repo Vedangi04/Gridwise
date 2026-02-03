@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 import {
   LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer,
-  PieChart, Pie, Cell, AreaChart, Area, BarChart, Bar, ComposedChart,
+  PieChart, Pie, Cell, AreaChart, Area, Bar, ComposedChart,
   ReferenceLine
 } from 'recharts';
 import axios from 'axios';

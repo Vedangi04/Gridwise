@@ -1,0 +1,50 @@
+INFO:     Started server process [69947]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8001 (Press CTRL+C to quit)
+INFO:     127.0.0.1:63258 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     None:0 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:     None:0 - "GET /api/dates HTTP/1.1" 200 OK
+INFO:     None:0 - "GET /api/model-status HTTP/1.1" 200 OK
+INFO:     None:0 - "POST /api/wind-prediction HTTP/1.1" 200 OK
+INFO:     None:0 - "POST /api/solar-prediction HTTP/1.1" 200 OK
+INFO:     None:0 - "POST /api/dashboard-summary HTTP/1.1" 200 OK
+INFO:     None:0 - "POST /api/machine-consumption HTTP/1.1" 200 OK
+INFO:     None:0 - "POST /api/wind-prediction HTTP/1.1" 200 OK
+INFO:     None:0 - "POST /api/solar-prediction HTTP/1.1" 200 OK
+INFO:     None:0 - "POST /api/dashboard-summary HTTP/1.1" 200 OK
+INFO:     None:0 - "POST /api/machine-consumption HTTP/1.1" 200 OK
+INFO:     None:0 - "POST /api/ai-insights HTTP/1.1" 200 OK
+INFO:     None:0 - "POST /api/ai-insights HTTP/1.1" 200 OK
+INFO:     None:0 - "POST /api/wind-prediction HTTP/1.1" 200 OK
+INFO:     None:0 - "POST /api/ai-insights HTTP/1.1" 200 OK
+INFO:     None:0 - "POST /api/solar-prediction HTTP/1.1" 200 OK
+INFO:     None:0 - "POST /api/ai-insights HTTP/1.1" 200 OK
+INFO:     None:0 - "POST /api/machine-consumption HTTP/1.1" 200 OK
+INFO:     None:0 - "POST /api/ai-insights HTTP/1.1" 200 OK
+INFO:     None:0 - "POST /api/model-performance HTTP/1.1" 200 OK
+INFO:     None:0 - "POST /api/ai-insights HTTP/1.1" 200 OK
+INFO:     None:0 - "POST /api/wind-prediction HTTP/1.1" 200 OK
+INFO:     None:0 - "POST /api/solar-prediction HTTP/1.1" 200 OK
+INFO:     None:0 - "POST /api/dashboard-summary HTTP/1.1" 200 OK
+INFO:     None:0 - "POST /api/machine-consumption HTTP/1.1" 200 OK
+INFO:     None:0 - "POST /api/ai-insights HTTP/1.1" 200 OK
+INFO:     None:0 - "POST /api/wind-prediction HTTP/1.1" 200 OK
+INFO:     None:0 - "POST /api/ai-insights HTTP/1.1" 200 OK
+INFO:     None:0 - "POST /api/solar-prediction HTTP/1.1" 200 OK
+INFO:     None:0 - "POST /api/ai-insights HTTP/1.1" 200 OK
+INFO:     None:0 - "POST /api/machine-consumption HTTP/1.1" 200 OK
+INFO:     None:0 - "POST /api/ai-insights HTTP/1.1" 200 OK
+INFO:     None:0 - "POST /api/model-performance HTTP/1.1" 200 OK
+INFO:     None:0 - "POST /api/ai-insights HTTP/1.1" 200 OK
+INFO:     None:0 - "POST /api/wind-prediction HTTP/1.1" 200 OK
+INFO:     None:0 - "POST /api/solar-prediction HTTP/1.1" 200 OK
+INFO:     None:0 - "POST /api/dashboard-summary HTTP/1.1" 200 OK
+INFO:     None:0 - "POST /api/machine-consumption HTTP/1.1" 200 OK
+INFO:     None:0 - "POST /api/ai-insights HTTP/1.1" 200 OK
+INFO:     None:0 - "POST /api/wind-prediction HTTP/1.1" 200 OK
+INFO:     None:0 - "POST /api/ai-insights HTTP/1.1" 200 OK
+INFO:     None:0 - "POST /api/machine-consumption HTTP/1.1" 200 OK
+INFO:     None:0 - "POST /api/ai-insights HTTP/1.1" 200 OK
+INFO:     None:0 - "POST /api/model-performance HTTP/1.1" 200 OK
+INFO:     None:0 - "POST /api/ai-insights HTTP/1.1" 200 OK
