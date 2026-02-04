@@ -316,28 +316,13 @@ curl -X POST http://localhost:8001/api/wind-prediction \
 - Make informed operational decisions
 
 ## 📚 Learning Resources
-
 - **FastAPI**: https://fastapi.tiangolo.com/
 - **React**: https://react.dev/
 - **Scikit-learn ML**: https://scikit-learn.org/
 - **Recharts**: https://recharts.org/
 - **Tailwind CSS**: https://tailwindcss.com/
 
-## 🤝 Contributing
-
-This is a showcase project for data engineering and ML skills. Feel free to:
-- Add new visualizations
-- Improve model accuracy
-- Add more data sources
-- Enhance UI/UX
-- Add additional features
-
-## 📄 License
-
-This project is provided as-is for educational and portfolio purposes.
-
 ## 👨‍💻 Author
-
 Created as a modern energy management dashboard showcasing:
 - Full-stack development (React + FastAPI)
 - Machine learning model training
